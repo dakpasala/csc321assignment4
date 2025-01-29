@@ -52,19 +52,24 @@ def crack_password(user_entry, wordlist, num_workers):
                 end_time = time.time()
                 print(f"\nPassword found for {user}: {result}")
                 print(f"Time taken: {end_time - start_time:.2f} seconds")
-                return result
+                return {user: result}
 
     print(f"Password not found for {user}.")
-    return None
+    return {user: None}
 
-# Main function to crack all passwords
-def crack_passwords(shadow_entries, wordlist, num_workers):
-    results = {}
-    for entry in shadow_entries:
-        result = crack_password(entry, wordlist, num_workers)
-        if result:
-            user = entry.split(':')[0]
-            results[user] = result
+# Main function to crack all passwords in parallel
+def crack_passwords_parallel(shadow_entries, wordlist, num_workers):
+    print("\nStarting parallel cracking for all users...")
+
+    # Use ProcessPoolExecutor to handle each user's password in parallel
+    with ProcessPoolExecutor(max_workers=num_workers) as executor:
+        futures = {executor.submit(crack_password, entry, wordlist, num_workers): entry for entry in shadow_entries}
+
+        results = {}
+        for future in tqdm(futures, desc="Overall Progress"):
+            result = future.result()
+            results.update(result)
+
     return results
 
 if __name__ == "__main__":
@@ -84,8 +89,11 @@ if __name__ == "__main__":
     print(f"Using {num_workers} CPU cores")
 
     # Crack the passwords
-    cracked_passwords = crack_passwords(shadow_entries, wordlist, num_workers)
+    cracked_passwords = crack_passwords_parallel(shadow_entries, wordlist, num_workers)
 
     print("\nCracked Passwords:")
     for user, password in cracked_passwords.items():
-        print(f"{user}: {password}")
+        if password:
+            print(f"{user}: {password}")
+        else:
+            print(f"{user}: Password not found")
