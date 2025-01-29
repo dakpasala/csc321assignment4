@@ -26,7 +26,7 @@ plt.show()
 # Create the second graph: Digest size vs Number of inputs tried
 plt.figure(figsize=(10, 6))
 plt.plot(digest_sizes, inputs_tried, marker='o', color='orange', label='Inputs Tried')
-plt.yscale('log')  # Use a logarithmic scale for better visibility
+plt.yscale('linear')  
 plt.title('Digest Size vs Number of Inputs Tried')
 plt.xlabel('Digest Size (Bits)')
 plt.ylabel('Number of Inputs Tried (Log Scale)')
